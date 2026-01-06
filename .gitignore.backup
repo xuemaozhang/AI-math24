@@ -1,0 +1,23 @@
+# =====================
+# Common
+# =====================
+.env
+.env.*
+.DS_Store
+*.log
+
+# =====================
+# Frontend
+# =====================
+math24-game/node_modules/
+math24-game/dist/
+math24-game/build/
+math24-game/.env
+
+# =====================
+# Backend
+# =====================
+backend/.env
+backend/__pycache__/
+backend/*.pyc
+backend/.venv/

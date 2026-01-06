@@ -1,0 +1,75 @@
+# =====================
+# Sensitive Files - CRITICAL
+# =====================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+secrets/
+credentials/
+
+# =====================
+# Common
+# =====================
+.DS_Store
+*.log
+*.swp
+*.swo
+*~
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# =====================
+# Frontend
+# =====================
+math24-game/node_modules/
+math24-game/dist/
+math24-game/build/
+math24-game/.env
+math24-game/.env.local
+math24-game/.env.*.local
+math24-game/coverage/
+math24-game/.vitest/
+math24-game/npm-debug.log*
+math24-game/yarn-debug.log*
+math24-game/yarn-error.log*
+math24-game/pnpm-debug.log*
+math24-game/.vite/
+
+# =====================
+# Backend
+# =====================
+backend/.env
+backend/.env.*
+backend/__pycache__/
+backend/*.pyc
+backend/*.pyo
+backend/.venv/
+backend/venv/
+backend/env/
+backend/.pytest_cache/
+backend/.coverage
+backend/htmlcov/
+backend/*.egg-info/
+backend/dist/
+backend/build/
+backend/.mypy_cache/
+backend/.ruff_cache/
+backend/uv.lock
+
+# =====================
+# Docker
+# =====================
+.backend.pid
+*.pid
+
+# =====================
+# OS Files
+# =====================
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
