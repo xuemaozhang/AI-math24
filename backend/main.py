@@ -6,6 +6,7 @@ import operator
 import os
 import re
 from collections import Counter
+import openai
 from typing import Iterable, List, Literal, Optional
 
 import google.generativeai as genai
@@ -17,14 +18,20 @@ from pydantic import BaseModel, Field, field_validator
 
 load_dotenv()
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+# GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+# GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
-if not GEMINI_API_KEY:
-    raise RuntimeError("GEMINI_API_KEY is not set; add it to your environment or .env file.")
+# if not GEMINI_API_KEY:
+#     raise RuntimeError("GEMINI_API_KEY is not set; add it to your environment or .env file.")
 
-genai.configure(api_key=GEMINI_API_KEY)
-GEN_MODEL = genai.GenerativeModel(GEMINI_MODEL)
+# genai.configure(api_key=GEMINI_API_KEY)
+# GEN_MODEL = genai.GenerativeModel(GEMINI_MODEL)
+API_KEY = os.getenv("OPENAI_API_KEY")
+API_MODEL = os.getenv("OPENAI_MODEL", "gpt-4-turbo")
+
+if not API_KEY:
+    raise RuntimeError("OPENAI_API_KEY is not set; add it to your environment or .env file.")
+client = openai.Client(api_key=API_KEY)
 
 app = FastAPI(title="Math24 Backend", version="0.1.0")
 
@@ -310,42 +317,53 @@ def ai_hint(payload: HintRequest) -> HintResponse:
 
     prompt = build_hint_prompt(payload, used_numbers, remaining_numbers, parse_note, solution_step, solution_ops)
     try:
-        completion = GEN_MODEL.generate_content(
-            prompt,
-            generation_config={
-                "max_output_tokens": 80,
-                "temperature": 0.85,
-                "top_p": 0.9,
-            },
+        # completion = GEN_MODEL.generate_content(
+        #     prompt,
+        #     generation_config={
+        #         "max_output_tokens": 80,
+        #         "temperature": 0.1,
+        #         "top_p": 0.9,
+        #     },
+        # )
+        # hint_text = (completion.text or "Try pairing numbers into factors of the target.").strip()
+        
+        completion = client.chat.completions.create(
+            model="gpt-4-turbo",
+            messages=[
+                {"role": "system", "content": prompt},
+            ],
+            temperature=0.1,
+            top_p=0.9,
         )
-        text = (completion.text or "Try pairing numbers into factors of the target.").strip()
     except Exception as exc:  # pragma: no cover - upstream errors
         raise HTTPException(status_code=502, detail=f"Hint generation failed: {exc}") from exc
-    print(f"the AI hint: {text}")
+    hint_text = completion.choices[0].message.content.strip()
+    print(f"the AI hint: {hint_text}")
     # Keep hints concise and avoid over-long responses even if the model drifts.
-    truncated = text.split("\n")[0][:240]
-    word_count = len(truncated.split())
+    # truncated = text.split("\n")[0][:240]
+    # word_count = len(truncated.split())
 
-    if word_count < 6:
-        rem = remaining_numbers or payload.numbers
-        if eval_value is not None:
-            delta = eval_value - payload.target
-            if delta < -3:
-                fallback = "Raise the total: multiply a mid pair, then add a small remaining number." 
-            elif delta > 3:
-                fallback = "Reduce the total: use one division or subtraction on the biggest pair before combining the rest." 
-            else:
-                fallback = "Nudge closer: reorder with parentheses and try forming a 6 or 8 first." 
-        elif len(rem) >= 2:
-            a, b = rem[0], rem[1]
-            fallback = f"Try {a} {"*" if a*b <= payload.target else "+"} {b} to make a factor, then finish with the others." 
-        elif rem:
-            fallback = f"Blend {rem[0]} with the largest number using division or subtraction to fine-tune." 
-        else:
-            fallback = "Reorder with parentheses and try a single division before adding." 
-        truncated = fallback
-    print(f"the AI final hint: {truncated}")
-    return HintResponse(hint=truncated, model=GEMINI_MODEL)
+    # if word_count < 6:
+    #     rem = remaining_numbers or payload.numbers
+    #     if eval_value is not None:
+    #         delta = eval_value - payload.target
+    #         if delta < -3:
+    #             fallback = "Raise the total: multiply a mid pair, then add a small remaining number." 
+    #         elif delta > 3:
+    #             fallback = "Reduce the total: use one division or subtraction on the biggest pair before combining the rest." 
+    #         else:
+    #             fallback = "Nudge closer: reorder with parentheses and try forming a 6 or 8 first." 
+    #     elif len(rem) >= 2:
+    #         a, b = rem[0], rem[1]
+    #         fallback = f"Try {a} {"*" if a*b <= payload.target else "+"} {b} to make a factor, then finish with the others." 
+    #     elif rem:
+    #         fallback = f"Blend {rem[0]} with the largest number using division or subtraction to fine-tune." 
+    #     else:
+    #         fallback = "Reorder with parentheses and try a single division before adding." 
+    #     truncated = fallback
+    # print(f"the AI final hint: {truncated}")
+    return HintResponse(hint=hint_text, model=API_MODEL)
+
 
 
 # For local dev: uvicorn main:app --reload

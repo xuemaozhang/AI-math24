@@ -26,7 +26,8 @@ test-cov:
 
 # Start development server
 run:
-	uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000
+# 	uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000
+	uv run uvicorn main:app --reload --host 0.0.0.0
 
 # Clean cache and temporary files
 clean:
