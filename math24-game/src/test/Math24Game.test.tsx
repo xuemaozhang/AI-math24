@@ -338,7 +338,7 @@ describe('Math24Game', () => {
       await user.click(screen.getByRole('button', { name: /AI Hint/i }))
       
       // Check the button is disabled and shows loading text
-      const button = screen.getByRole('button', { name: /Gemini is thinking/i })
+      const button = screen.getByRole('button', { name: /OpenAI is thinking/i })
       expect(button).toBeDisabled()
     })
 

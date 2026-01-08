@@ -23,16 +23,20 @@ load_dotenv()
 # print(response.text)
 
 def build_hint_prompt(
-    numbers,
-    used_numbers,
-    remaining_numbers,
-    expression,
+    request: HintRequest,
+    used_numbers: List[int],
+    remaining_numbers: List[int],
+    parse_note: str,
+    solution_step: Optional[str],
+    solution_ops: List[str],
 ) -> str:
-    numbers_str = ", ".join(str(n) for n in numbers)
+    numbers_str = ", ".join(str(n) for n in request.numbers)
     used_str = ", ".join(str(n) for n in used_numbers) or "none"
     remaining_str = ", ".join(str(n) for n in remaining_numbers) or "none"
-    partial = expression.strip() or "(no expression yet)"
+    partial = request.expression.strip() or "(no expression yet)"
+    mode_text = request.mode or "unspecified"
 
+    ops_str = ", ".join(solution_ops) if solution_ops else "unknown"
 
     prompt = f"""
         You are an assistant for the Math 24 game.
@@ -40,7 +44,7 @@ def build_hint_prompt(
         Rules:
         - Use every provided number exactly once
         - Allowed operations: +, -, *, /, parentheses
-        - Target: 24
+        - Target: {request.target}
         - Return ONE concise hint (8-20 words), a single sentence
         - Never give a complete solution or full expression using all numbers
         - Allowed: suggest one operation, a partial grouping, or a strategic idea
@@ -53,7 +57,10 @@ def build_hint_prompt(
         - Numbers already used: {used_str}
         - Numbers remaining: {remaining_str}
         - Current expression (may be partial): {partial}
-        - Mode: easy
+        - Mode: {mode_text}
+        - Expression status: {parse_note}
+        - Solution operators (bag): {ops_str}
+        - Solution opening move: {solution_step or "not provided"}
 
         Respond with just the hint text. Do not reveal a complete solution.
 

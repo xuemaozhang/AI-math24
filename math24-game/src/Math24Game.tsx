@@ -326,7 +326,7 @@ export default function Math24Game() {
               onClick={fetchAiHint}
               disabled={aiStatus === 'loading'}
             >
-              {aiStatus === 'loading' ? 'Gemini is thinking…' : 'AI Hint (Gemini)'}
+              {aiStatus === 'loading' ? 'OpenAI is thinking…' : 'AI Hint (OpenAI)'}
             </button>
             <button className="btn subtle" type="button" onClick={toggleMode}>
               Switch to {mode === 'easy' ? 'Hard' : 'Easy'}
@@ -337,7 +337,7 @@ export default function Math24Game() {
               <span className="hint-index">{idx + 1}</span> {hint}
             </p>
           ))}
-          {aiStatus === 'loading' && <p className="hint-note ai-hint">Gemini is thinking about a nudge…</p>}
+          {aiStatus === 'loading' && <p className="hint-note ai-hint">OpenAI is thinking about a nudge…</p>}
           {aiHint && aiStatus !== 'loading' && (
             <p className="hint-note ai-hint" aria-live="polite">{aiHint}</p>
           )}

@@ -213,7 +213,10 @@ def build_hint_prompt(
     partial = request.expression.strip() or "(no expression yet)"
     mode_text = request.mode or "unspecified"
 
-    ops_str = ", ".join(solution_ops) if solution_ops else "unknown"
+    # Only include solution info as reference context, not as directive
+    solution_context = ""
+    if solution_step:
+        solution_context = f"\n        - One valid approach: {solution_step}"
 
     prompt = f"""
         You are an assistant for the Math 24 game.
@@ -227,7 +230,6 @@ def build_hint_prompt(
         - Allowed: suggest one operation, a partial grouping, or a strategic idea
         - Disallowed: full expression that reaches the target; step-by-step full solution; listing all operations
         - Avoid generic phrasing like "group X and Y first"; vary tactics and be specific.
-        - If a solution hint is provided, align with it but DO NOT reveal the full solution.
 
         Game state:
         - Numbers given: {numbers_str}
@@ -235,9 +237,10 @@ def build_hint_prompt(
         - Numbers remaining: {remaining_str}
         - Current expression (may be partial): {partial}
         - Mode: {mode_text}
-        - Expression status: {parse_note}
-        - Solution operators (bag): {ops_str}
-        - Solution opening move: {solution_step or "not provided"}
+        - Expression status: {parse_note}{solution_context}
+
+        Priority: Help the user continue THEIR current path forward. Suggest a next step based on what they've already typed.
+        Only use the reference solution if their approach seems stuck; otherwise guide them forward independently.
 
         Respond with just the hint text. Do not reveal a complete solution.
 
